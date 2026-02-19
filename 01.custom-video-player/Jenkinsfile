@@ -6,7 +6,7 @@ pipeline {
         DOCKER_TAG = "latest"
         EC2_HOST = "ubuntu@52.90.32.136"
         CONTAINER_NAME = "video-app"
-        PROJECT_DIR = "custom-video-player"
+        PROJECT_DIR = "01.custom-video-player"
     }
 
     stages {
