@@ -1,0 +1,60 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = "nagateja96/custom-video-player"
+        DOCKER_TAG = "latest"
+        EC2_HOST = "ubuntu@52.90.32.136"
+        CONTAINER_NAME = "video-app"
+        PROJECT_DIR = "custom-video-player"
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+              git branch: 'feature',
+                git 'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
+            }
+        }
+
+        stage('Build WAR') {
+            steps {
+                dir("${custom-video-player}") {
+                    sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
+                }
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-cred',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        echo "Pushing image..."
+                        docker push $DOCKER_IMAGE:latest
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                sshagent(['App-server']) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no $EC2_HOST '
+                        docker stop $CONTAINER_NAME || true
+                        docker rm $CONTAINER_NAME || true
+                        docker pull $DOCKER_IMAGE:$DOCKER_TAG
+                        docker run -d -p 3000:80 --name $CONTAINER_NAME $DOCKER_IMAGE:$DOCKER_TAG
+                    '
+                    """
+                }
+            }
+        }
+    }
+}
