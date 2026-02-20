@@ -17,6 +17,13 @@ pipeline {
                     url: 'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
             }
         }
+        
+        stage('Check Files') {
+    steps {
+        sh 'pwd'
+        sh 'ls -R'
+    }
+}
 
         stage('Build Docker Image') {
             steps {
