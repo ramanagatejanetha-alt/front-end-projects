@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "nagateja96/quiz-app"
         DOCKER_TAG = "latest"
-        EC2_HOST = "ubuntu@52.87.192.5"
+        EC2_HOST = "ubuntu@3.84.165.172"
         CONTAINER_NAME = "quiz-app"
         PROJECT_DIR = "front-end-projects/05.quiz-app"  
     }
