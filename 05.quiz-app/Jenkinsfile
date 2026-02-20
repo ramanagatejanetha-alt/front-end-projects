@@ -1,13 +1,13 @@
 pipeline {
     agent any
 
-   environment {
-    DOCKER_IMAGE   = "nagateja96/quiz-app"
-    DOCKER_TAG     = "latest"
-    EC2_HOST       = "ubuntu@3.84.165.172"
-    CONTAINER_NAME = "quiz-app"
-    PROJECT_DIR    = "front-end-projects/05.quiz-app"  // correct folder name
-}
+    environment {
+        DOCKER_IMAGE   = "nagateja96/quiz-app"
+        DOCKER_TAG     = "latest"
+        EC2_HOST       = "ubuntu@3.84.165.172"
+        CONTAINER_NAME = "quiz-app"
+        PROJECT_DIR    = "05.quiz-app"  // Correct folder inside Jenkins workspace
+    }
 
     stages {
 
@@ -17,27 +17,28 @@ pipeline {
                     url: 'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
             }
         }
-        
-      stage('Check Dockerfile') {
-    steps {
-        dir("${PROJECT_DIR}") {
-            sh 'pwd'
-            sh 'ls -l'
+
+        stage('Check Dockerfile') {
+            steps {
+                dir("${PROJECT_DIR}") {
+                    sh 'pwd'
+                    sh 'ls -l'   // Verify Dockerfile exists
+                }
+            }
         }
-    }
-}
 
         stage('Build Docker Image') {
-    steps {
-        dir("${PROJECT_DIR}") {
-            sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+            steps {
+                dir("${PROJECT_DIR}") {
+                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                }
+            }
         }
-    }
-}
+
         stage('Push to DockerHub') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
+                    credentialsId: 'dockerhub-creds',  // Your DockerHub credentials in Jenkins
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
@@ -50,18 +51,19 @@ pipeline {
         }
 
         stage('Deploy to EC2') {
-    steps {
-        sshagent(['jenkin server']) {   // Use your actual Jenkins credential ID
-            sh """
-                ssh -o StrictHostKeyChecking=no ${EC2_HOST} '
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
-                    docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    docker run -d -p 3000:80 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}:${DOCKER_TAG}
-                '
-            """
+            steps {
+                sshagent(['App-server']) {  // Jenkins SSH credentials ID for your EC2
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${EC2_HOST} '
+                            docker stop ${CONTAINER_NAME} || true
+                            docker rm ${CONTAINER_NAME} || true
+                            docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
+                            docker run -d -p 3000:80 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        '
+                    """
+                }
+            }
         }
-    }
-}
+
     }
 }
