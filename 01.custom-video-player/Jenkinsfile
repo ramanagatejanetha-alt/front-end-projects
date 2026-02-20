@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "nagateja96/custom-video-player"
         DOCKER_TAG = "latest"
-        EC2_HOST = "ubuntu@52.90.32.136"
+        EC2_HOST = "ubuntu@52.87.192.5"
         CONTAINER_NAME = "video-app"
         PROJECT_DIR = "01.custom-video-player"
     }
