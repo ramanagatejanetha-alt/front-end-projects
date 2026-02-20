@@ -1,13 +1,14 @@
 pipeline {
     agent any
 
-   environment {
-    DOCKER_IMAGE = "nagateja96/quiz-app"
-    DOCKER_TAG = "latest"
-    EC2_HOST = "ubuntu@52.87.192.5"
-    CONTAINER_NAME = "quiz-app"
-    PROJECT_DIR = "05.Quiz-App"   // <-- must match your Quiz-App folder
-}
+    environment {
+        DOCKER_IMAGE = "nagateja96/quiz-app"
+        DOCKER_TAG = "latest"
+        EC2_HOST = "ubuntu@52.87.192.5"
+        CONTAINER_NAME = "quiz-app"
+        PROJECT_DIR = "front-end-projects/05.quiz-app"  
+    }
+
     stages {
 
         stage('Checkout Code') {
@@ -17,13 +18,13 @@ pipeline {
             }
         }
 
-      stage('Build Docker Image') {
-    steps {
-        dir("${PROJECT_DIR}") {
-            sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+        stage('Build Docker Image') {
+            steps {
+                dir("${PROJECT_DIR}") {
+                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                }
+            }
         }
-    }
-}
 
         stage('Push to DockerHub') {
             steps {
@@ -48,7 +49,7 @@ pipeline {
                             docker stop ${CONTAINER_NAME} || true
                             docker rm ${CONTAINER_NAME} || true
                             docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
-                            docker run -d -p 3000:80 --name quiz-app nagateja96/quiz-app:latest}
+                            docker run -d -p 3000:80 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}:${DOCKER_TAG}
                         '
                     """
                 }
