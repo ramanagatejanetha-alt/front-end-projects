@@ -1,13 +1,13 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = "nagateja96/quiz-app"
-        DOCKER_TAG = "latest"
-        EC2_HOST = "ubuntu@3.84.165.172"
-        CONTAINER_NAME = "quiz-app"
-        PROJECT_DIR = "front-end-projects/05.quiz-app"  
-    }
+   environment {
+    DOCKER_IMAGE   = "nagateja96/quiz-app"
+    DOCKER_TAG     = "latest"
+    EC2_HOST       = "ubuntu@3.84.165.172"
+    CONTAINER_NAME = "quiz-app"
+    PROJECT_DIR    = "front-end-projects/05.quiz-app"  // correct folder name
+}
 
     stages {
 
@@ -18,21 +18,22 @@ pipeline {
             }
         }
         
-        stage('Check Files') {
+      stage('Check Dockerfile') {
     steps {
-        sh 'pwd'
-        sh 'ls -R'
+        dir("${PROJECT_DIR}") {
+            sh 'pwd'
+            sh 'ls -l'
+        }
     }
 }
 
         stage('Build Docker Image') {
-            steps {
-                dir("${PROJECT_DIR}") {
-                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
-                }
-            }
+    steps {
+        dir("${PROJECT_DIR}") {
+            sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
         }
-
+    }
+}
         stage('Push to DockerHub') {
             steps {
                 withCredentials([usernamePassword(
@@ -49,18 +50,18 @@ pipeline {
         }
 
         stage('Deploy to EC2') {
-            steps {
-                sshagent(['jenkin server']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${EC2_HOST} '
-                            docker stop ${CONTAINER_NAME} || true
-                            docker rm ${CONTAINER_NAME} || true
-                            docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
-                           docker run -d -p 3000:80 --name quiz-app nagateja96/quiz-app:latest
-                        '
-                    """
-                }
-            }
+    steps {
+        sshagent(['jenkin server']) {   // Use your actual Jenkins credential ID
+            sh """
+                ssh -o StrictHostKeyChecking=no ${EC2_HOST} '
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm ${CONTAINER_NAME} || true
+                    docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    docker run -d -p 3000:80 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}:${DOCKER_TAG}
+                '
+            """
         }
+    }
+}
     }
 }
