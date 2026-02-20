@@ -6,9 +6,8 @@ pipeline {
     DOCKER_TAG = "latest"
     EC2_HOST = "ubuntu@52.87.192.5"
     CONTAINER_NAME = "quiz-app"
-    PROJECT_DIR = "05.Quiz-App"   
+    PROJECT_DIR = "05.Quiz-App"   // <-- must match your Quiz-App folder
 }
-
     stages {
 
         stage('Checkout Code') {
