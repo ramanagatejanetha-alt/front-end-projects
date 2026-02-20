@@ -1,11 +1,10 @@
-FROM tomcat:9-jdk17                            
+FROM nginx:alpine
 
-# Remove default apps
-RUN rm -rf /usr/local/tomcat/webapps/*         
+RUN rm -rf /usr/share/nginx/html/*
 
-# Copy WAR file
-COPY target/*.war /usr/local/tomcat/webapps/ROOT.war           
+# Copy all frontend project files into Nginx folder
+COPY . /usr/share/nginx/html
 
-EXPOSE 3000                                   
+EXPOSE 80
 
-CMD ["catalina.sh", "run"] 
+CMD ["nginx", "-g", "daemon off;"] 
