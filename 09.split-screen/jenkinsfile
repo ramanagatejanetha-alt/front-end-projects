@@ -13,13 +13,13 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'master',
-                    url: https://github.com/ramanagatejanetha-alt/front-end-projects.git'
+                    url: 'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ./09.split-screen"
             }
         }
 
@@ -51,15 +51,6 @@ pipeline {
                     """
                 }
             }
-        }
-    }
-
-    post {
-        success {
-            echo "Application deployed successfully on port 3000"
-        }
-        always {
-            cleanWs()
         }
     }
 }
