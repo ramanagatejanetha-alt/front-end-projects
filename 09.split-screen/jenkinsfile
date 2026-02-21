@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE   = "nagateja96/split-screen-app"
+        DOCKER_IMAGE   = "nagateja96/split-screen"
         DOCKER_TAG     = "latest"
         EC2_HOST       = "ubuntu@3.94.125.170"
         CONTAINER_NAME = "09.split-screen"
