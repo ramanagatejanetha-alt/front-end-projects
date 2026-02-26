@@ -5,17 +5,17 @@ pipeline {
         DOCKER_IMAGE   = "nagateja96/split-screen"
         DOCKER_TAG     = "latest"
         EC2_HOST       = "ubuntu@3.94.125.170"
-        CONTAINER_NAME = "09.split-screen"
+        CONTAINER_NAME = "split-screen"
     }
 
     stages {
 
         stage('Checkout Code') {
-    steps {
-        git branch: 'master',
-            url: 'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
-    }
-}
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
@@ -40,17 +40,28 @@ pipeline {
             }
         }
 
-       stage('Deploy to EC2') {
-    steps {
-        sshagent(['nginx-server']) {
-            sh '''
-                ssh -o StrictHostKeyChecking=no ${EC2_HOST} "
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
-                    docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    docker run -d -p 3000:80 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}:${DOCKER_TAG}
-                "
-            '''
+        stage('Deploy to EC2') {
+            steps {
+                sshagent(['nginx-server']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ${EC2_HOST} "
+                            docker stop ${CONTAINER_NAME} || true
+                            docker rm ${CONTAINER_NAME} || true
+                            docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
+                            docker run -d -p 3000:80 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        "
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment Successful 🚀"
+        }
+        failure {
+            echo "Build Failed ❌"
         }
     }
 }
