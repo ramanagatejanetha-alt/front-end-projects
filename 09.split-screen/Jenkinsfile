@@ -12,13 +12,16 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                checkout scm
+                git branch: 'main',
+                    url: 'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ./09.split-screen"
+                sh '''
+                    docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ./09.split-screen
+                '''
             }
         }
 
@@ -29,10 +32,10 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh """
-                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                         docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    """
+                    '''
                 }
             }
         }
@@ -40,16 +43,25 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 sshagent(['Ngnix server']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${EC2_HOST} '
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ${EC2_HOST} "
                             docker stop ${CONTAINER_NAME} || true
                             docker rm ${CONTAINER_NAME} || true
                             docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
                             docker run -d -p 3000:80 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}:${DOCKER_TAG}
-                        '
-                    """
+                        "
+                    '''
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment Successful 🚀"
+        }
+        failure {
+            echo "Build Failed ❌"
         }
     }
 }
