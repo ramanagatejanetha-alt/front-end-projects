@@ -40,28 +40,17 @@ pipeline {
             }
         }
 
-        stage('Deploy to EC2') {
-            steps {
-                sshagent(['Ngnix server']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no ${EC2_HOST} "
-                            docker stop ${CONTAINER_NAME} || true
-                            docker rm ${CONTAINER_NAME} || true
-                            docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
-                            docker run -d -p 3000:80 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}:${DOCKER_TAG}
-                        "
-                    '''
-                }
-            }
-        }
-    }
-
-    post {
-        success {
-            echo "Deployment Successful 🚀"
-        }
-        failure {
-            echo "Build Failed ❌"
+       stage('Deploy to EC2') {
+    steps {
+        sshagent(['nginx-server']) {
+            sh '''
+                ssh -o StrictHostKeyChecking=no ${EC2_HOST} "
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm ${CONTAINER_NAME} || true
+                    docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    docker run -d -p 3000:80 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}:${DOCKER_TAG}
+                "
+            '''
         }
     }
 }
