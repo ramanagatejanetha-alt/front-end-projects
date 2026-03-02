@@ -13,7 +13,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'master',
-                    url: 'https://github.com/your-username/responsive-font-size.git'
+                    url:' https://github.com/ramanagatejanetha-alt/front-end-projects.git'
             }
         }
 
