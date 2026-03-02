@@ -38,19 +38,17 @@ pipeline {
         }
     }
 }
-        stage('Deploy to EC2') {
-            steps {
-                sshagent(['app-server']) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no $EC2_HOST "
-                    docker pull $DOCKER_IMAGE:$DOCKER_TAG &&
-                    docker stop $CONTAINER_NAME || true &&
-                    docker rm $CONTAINER_NAME || true &&
-                    docker run -d -p 80:80 --name $CONTAINER_NAME $DOCKER_IMAGE:$DOCKER_TAG
-                    "
-                    '''
-                }
-            }
+       stage('Deploy') {
+    steps {
+        sshagent(['app-server']) {
+            sh '''
+                ssh -o StrictHostKeyChecking=no ubuntu@172.31.83.17 "
+                docker pull nagateja96/your-image:latest &&
+                docker stop app || true &&
+                docker rm app || true &&
+                docker run -d -p 3000:3000 --name app nagateja96/your-image:latest
+                "
+            '''
         }
     }
 }
