@@ -4,35 +4,34 @@ pipeline {
     environment {
         DOCKER_IMAGE   = "nagateja96/responsive-font-size"
         DOCKER_TAG     = "latest"
-        EC2_HOST       = "ubuntu@3.94.125.170"
-        CONTAINER_NAME = "10.responsive-font"
+        EC2_HOST       = "ubuntu@172.31.83.17"
+        CONTAINER_NAME = "responsive-font-size"
     }
 
     stages {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'master',
-                    url:' https://github.com/ramanagatejanetha-alt/front-end-projects.git'
+                git branch: 'main',
+                    url: 'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-              sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG 10.responsive-font-size'
+                sh '''
+                cd 10.responsive-font-size
+                docker build -t $DOCKER_IMAGE:$DOCKER_TAG .
+                '''
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh '''
-                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                        docker push $DOCKER_IMAGE:$DOCKER_TAG
+                    echo $PASS | docker login -u $USER --password-stdin
+                    docker push $DOCKER_IMAGE:$DOCKER_TAG
                     '''
                 }
             }
@@ -40,26 +39,17 @@ pipeline {
 
         stage('Deploy to EC2') {
             steps {
-               sshagent(['app-server'])
+                sshagent(['app-server']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no $EC2_HOST "
-                        docker pull $DOCKER_IMAGE:$DOCKER_TAG &&
-                        docker stop $CONTAINER_NAME || true &&
-                        docker rm $CONTAINER_NAME || true &&
-                        docker run -d -p 3000:80 --name $CONTAINER_NAME $DOCKER_IMAGE:$DOCKER_TAG
-                        "
+                    ssh -o StrictHostKeyChecking=no $EC2_HOST "
+                    docker pull $DOCKER_IMAGE:$DOCKER_TAG &&
+                    docker stop $CONTAINER_NAME || true &&
+                    docker rm $CONTAINER_NAME || true &&
+                    docker run -d -p 80:80 --name $CONTAINER_NAME $DOCKER_IMAGE:$DOCKER_TAG
+                    "
                     '''
                 }
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Responsive Font Size project deployed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed. Check logs.'
         }
     }
 }
