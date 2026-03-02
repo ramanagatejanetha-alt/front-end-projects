@@ -2,53 +2,51 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE   = "nagateja96/10.responsive-font-size"
-        DOCKER_TAG     = "latest"
-        EC2_HOST       = "ubuntu@172.31.83.17"
-        CONTAINER_NAME = "10.responsive-font-size"
+        DOCKER_IMAGE = "nagateja96/10.responsive-font-size"
+        DOCKER_TAG   = "latest"
+        SERVER_IP    = "172.31.83.17"
     }
 
     stages {
 
         stage('Checkout Code') {
-    steps {
-        git branch: 'master',
-            url: 'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
-    }
-}
-
-        stage('Build Docker Image') {
             steps {
-                sh '''
-                cd 10.responsive-font-size
-                docker build -t $DOCKER_IMAGE:$DOCKER_TAG .
-                '''
+                git branch: 'master',
+                    url: 'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
             }
         }
 
-        stage('Push Docker Image') {
-    steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
-                                          usernameVariable: 'USER',
-                                          passwordVariable: 'PASS')]) {
-            sh '''
-            echo $PASS | docker login -u $USER --password-stdin
-            docker push $DOCKER_IMAGE:$DOCKER_TAG
-            '''
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG 10.responsive-font-size/'
+            }
         }
-    }
-}
-       stage('Deploy') {
-    steps {
-        sshagent(['app-server']) {
-            sh '''
-                ssh -o StrictHostKeyChecking=no ubuntu@172.31.83.17 "
-                docker pull nagateja96/your-image:latest &&
-                docker stop app || true &&
-                docker rm app || true &&
-                docker run -d -p 3000:3000 --name app nagateja96/your-image:latest
-                "
-            '''
+
+        stage('Push to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh '''
+                        echo $PASS | docker login -u $USER --password-stdin
+                        docker push $DOCKER_IMAGE:$DOCKER_TAG
+                    '''
+                }
+            }
         }
+
+        stage('Deploy to ec2') {
+            steps {
+                sshagent(['app-server']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@$SERVER_IP "
+                        docker pull $DOCKER_IMAGE:$DOCKER_TAG &&
+                        docker stop app || true &&
+                        docker rm app || true &&
+                        docker run -d -p 3000:3000 --name app $DOCKER_IMAGE:$DOCKER_TAG
+                        "
+                    '''
+                }
+            }
+        }
+
     }
-}
+}}
