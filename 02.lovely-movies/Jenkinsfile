@@ -51,7 +51,7 @@ pipeline {
                             docker stop ${CONTAINER_NAME} || true
                             docker rm ${CONTAINER_NAME} || true
                             docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}
-                            docker run -d -p 3000:3000 --name ${CONTAINER_NAME} ${DOCKER_IMAGE}:${DOCKER_TAG}
+                           docker run -d -p 3000:80 --name lovely-movies nagateja96/lovely-movies:latest
                         '
                     """
                 }
