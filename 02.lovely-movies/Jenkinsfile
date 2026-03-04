@@ -9,18 +9,15 @@ pipeline {
         PROJECT_DIR    = "02.lovely-movies"
     }
 
-    stages {
-
-        stage('Checkout Code') {
-            steps {
-                git branch: 'master',
-                    url:'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
-                dir("${PROJECT_DIR}") {
-                    sh "git checkout ${COMMIT_HASH}"
-                }
-            }
+  stage('Checkout Code') {
+    steps {
+        git branch: 'master',
+            url: 'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
+        dir("${PROJECT_DIR}") {
+            sh "git checkout master"
         }
-
+    }
+}
         stage('Build Docker Image') {
             steps {
                 dir("${PROJECT_DIR}") {
