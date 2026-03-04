@@ -2,58 +2,52 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE   = "nagateja96/lovely-movies"
-        DOCKER_TAG     = "latest"
-        EC2_HOST       = "ubuntu@172.31.84.185"
-        CONTAINER_NAME = "lovely-movies"
-        PROJECT_DIR    = "02.lovely-movies"
+        DOCKER_IMAGE = "nagateja96/lovely-movies"
+        DOCKER_TAG   = "latest"
+        EC2_HOST     = "ubuntu@3.94.125.170"
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 git branch: 'master',
                     url: 'https://github.com/ramanagatejanetha-alt/front-end-projects.git'
-                dir("${PROJECT_DIR}") {
-                    sh "git checkout master"
-                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                dir("${PROJECT_DIR}") {
-                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                dir('02.lovely-movies') {
+                    sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
                 }
             }
         }
 
         stage('Push to DockerHub') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh """
-                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
-                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    """
+                withCredentials([string(credentialsId: 'docker-pass', variable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u nagateja96 --password-stdin
+                        docker push $DOCKER_IMAGE:$DOCKER_TAG
+                    '''
                 }
             }
         }
 
         stage('Deploy to EC2') {
-    steps {
-        sshagent(['App-server']) {
-            sh '''
-            ssh -o StrictHostKeyChecking=no ubuntu@3.94.125.170 "
-                docker pull nagateja96/lovely-movies:latest &&
-                docker stop app || true &&
-                docker rm app || true &&
-                docker run -d -p 3000:3000 --name app nagateja96/lovely-movies:latest
-            "
-            '''
+            steps {
+                sshagent(['App-server']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no $EC2_HOST "
+                            docker pull $DOCKER_IMAGE:$DOCKER_TAG &&
+                            docker stop app || true &&
+                            docker rm app || true &&
+                            docker run -d -p 3000:3000 --name app $DOCKER_IMAGE:$DOCKER_TAG
+                        "
+                    '''
+                }
+            }
         }
     }
 }
