@@ -1,20 +1,7 @@
-# Use node base image
-FROM node:20
+FROM nginx:alpine
 
-# Create app directory
-WORKDIR /app
+COPY . /usr/share/nginx/html
 
-# Copy package.json and package-lock.json first (for caching)
-COPY package*.json ./
+EXPOSE 80
 
-# Install dependencies
-RUN npm install
-
-# Copy rest of the source code
-COPY . .
-
-# Expose port 3000
-EXPOSE 3000
-
-# Start the app
-CMD ["npm", "start"]
+CMD ["nginx", "-g", "daemon off;"]
