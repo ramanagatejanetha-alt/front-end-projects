@@ -1,14 +1,17 @@
-# Use Node.js base image
-FROM node:18-alpine
+# Use node base image
+FROM node:20
 
-# Set working directory
+# Create app directory
 WORKDIR /app
 
-# Copy project files
-COPY . .
+# Copy package.json and package-lock.json first (for caching)
+COPY package*.json ./
 
-# Install dependencies if Node.js project
+# Install dependencies
 RUN npm install
+
+# Copy rest of the source code
+COPY . .
 
 # Expose port 3000
 EXPOSE 3000
