@@ -7,7 +7,6 @@ pipeline {
         EC2_HOST       = "ubuntu@172.31.84.185"
         CONTAINER_NAME = "lovely-movies"
         PROJECT_DIR    = "02.lovely-movies"
-        COMMIT_HASH    = "f4e2a1b" // specify your desired commit
     }
 
     stages {
@@ -60,4 +59,4 @@ pipeline {
             }
         }
     }
-}}
+}
