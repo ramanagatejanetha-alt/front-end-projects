@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    environment {
+        NODE_IP      = "172.31.84.185"                
+        NODE_USER    = "ubuntu"                        
+        SSH_KEY_PATH = "~/.ssh/id_rsa"                
+        REPO_URL     = "https://github.com/ramanagatejanetha-alt/front-end-projects.git"
+        APP_NAME     = "02.lovely-movies"
+        COMMIT_HASH  = "f4e2a1b"                      
+        PORT         = "3000"
+        FOLDER       = "02.lovely-movies"
+    }
+
+    stages {
+        stage('Deploy to Node') {
+            steps {
+                sh """
+                ssh -i ${SSH_KEY_PATH} -o StrictHostKeyChecking=no ${NODE_USER}@${NODE_IP} '
+                  # Stop and remove existing container
+                  docker stop ${APP_NAME} || true
+                  docker rm ${APP_NAME} || true
+
+                  # Clone repo if it does not exist, otherwise fetch latest
+                  if [ ! -d "${FOLDER}" ]; then
+                      git clone ${REPO_URL}
+                  fi
+
+                  cd ${FOLDER}
+                  git fetch
+                  git checkout ${COMMIT_HASH}
+
+                  # Build Docker image
+                  docker build -t ${APP_NAME}:latest .
+
+                  # Run container
+                  docker run -d -p ${PORT}:${PORT} --name ${APP_NAME} ${APP_NAME}:latest
+                '
+                """
+            }
+        }
+    }
+}
