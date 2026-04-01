@@ -43,7 +43,7 @@ pipeline {
 
         stage('Deploy to EC2') {
             steps {
-                sshagent(['App-server']) {
+                sshagent(['ubuntu']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${EC2_HOST} '
                             docker stop ${CONTAINER_NAME} || true
