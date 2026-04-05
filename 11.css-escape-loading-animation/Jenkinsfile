@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "nagateja96/10. Escape Loading Animation"
+        DOCKER_IMAGE = "nagateja96/escape-loading-animation"
         DOCKER_TAG   = "latest"
 
-        SERVER_IP    = "172.31.29.127" 
+        SERVER_IP    = "172.31.29.127"
         SSH_USER     = "ubuntu"
-        CREDENTIALS  = "server"        
+        CREDENTIALS  = "server"
     }
 
     stages {
@@ -22,7 +22,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-               docker build -t css-loading-demo "./10. Escape Loading Animation - CSS"
+                docker build -t $DOCKER_IMAGE:$DOCKER_TAG "./10. Escape Loading Animation - CSS"
                 '''
             }
         }
@@ -50,7 +50,7 @@ pipeline {
                         docker pull $DOCKER_IMAGE:$DOCKER_TAG &&
                         docker stop app || true &&
                         docker rm app || true &&
-                        docker run -d -p 3000:3000 --name app $DOCKER_IMAGE:$DOCKER_TAG
+                        docker run -d -p 80:80 --name app $DOCKER_IMAGE:$DOCKER_TAG
                     "
                     '''
                 }
@@ -63,4 +63,3 @@ pipeline {
             echo "Deployment Successful"
         }
         
-}
